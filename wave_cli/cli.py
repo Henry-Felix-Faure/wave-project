@@ -36,7 +36,7 @@ def scan(target, output, gobuster_wordlist):
         output_file_gobuster = run_gobuster_dir(target, wordlist=gobuster_wordlist)
         click.echo(f"[✓] Gobuster scan completed, output saved to {output_file_gobuster}")
     except Exception as e:
-        click.echo(f"[!] Gobuster error: {e}")
+        click.echo(f"[!] Gobuster failed : {e}")
         return
 
 if __name__ == "__main__":
