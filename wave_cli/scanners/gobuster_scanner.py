@@ -5,13 +5,13 @@ from pathlib import Path
 
 def run_gobuster_dir(target: str,
                      wordlist: str = "/usr/share/wordlists/dirb/big.txt",
-                     threads: int = 50) -> Path:
+                     threads: int = 50) -> str:
     """
     Lance gobuster dir sur une cible et renvoie la liste des chemins trouvés.
     """
     
     # Fichier output avec timestamp
-    output_file = Path("/tmp/wave_scans") / f"wave_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_gobuster_{target.replace('://', '_').replace('/', '_')}.txt"
+    output_file = Path("/tmp/wave_scans") / f"wave_{datetime.datetime.now().strftime('%Y-%m-%d_%Hh%Mm%Ss')}_gobuster_{target.replace('://', '_').replace('/', '_')}.txt"
 
     cmd_gb = [
         "gobuster",
@@ -22,6 +22,7 @@ def run_gobuster_dir(target: str,
         "-o", str(output_file),
         "-s", "200,301,302,307,401,403",
         "-b", "",
+        "--wildcard",
         "-q",          # quiet (moins de bruit)
     ]
 

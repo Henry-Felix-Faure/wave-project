@@ -10,7 +10,7 @@ from wave_cli.scanners.internal_links_scraper import scrape_internal_links
 @click.version_option(version=__version__, message="WAVE v"+str(__version__))
 @click.pass_context
 def cli(ctx):
-    """🔍 WAVE - Website Assessment Vulnerability Engine"""
+    """🌊🔍 WAVE - Website Assessment Vulnerability Engine"""
     if ctx.invoked_subcommand is None:
         banner()
 
@@ -55,8 +55,10 @@ def scan(target, output, gobuster_wordlist, link_limit):
         click.echo(f"[✓] Internal links scraped, output saved to {output_file_internal_links}")
     except Exception as e:
         click.echo(f"[!] Failed to scrape internal links: {e}")
+
     
-    return exit(0)
+    click.echo("[✓] Scan completed successfully!")
+    return 0
 
 if __name__ == "__main__":
     cli()

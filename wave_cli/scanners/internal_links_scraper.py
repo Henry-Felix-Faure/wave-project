@@ -7,22 +7,11 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 def scrape_internal_links(initial_target: str,
-                          scrap_limit: int = 100) -> Path:
+                          scrap_limit: int = 100) -> str:
     """Scrape tous les liens <a href> d'une page."""
 
     # Fichier output avec timestamp
     output_file = Path("/tmp/wave_scans") / f"wave_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_internal_links_{initial_target.replace('://', '_').replace('/', '_')}.txt"
-    
-    cmd_gb = ["touch", str(output_file)]
-
-    result = subprocess.run(
-        cmd_gb,
-        text=False,
-        capture_output=False,
-    )
-
-    if result.returncode != 0:
-        raise RuntimeError(result.stderr.strip())
     
     targets = [initial_target]
     absolute_links = set()
