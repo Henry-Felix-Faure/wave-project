@@ -1,5 +1,6 @@
 # wave_cli/scanners/gobuster_scanner.py
 import subprocess
+import datetime
 from pathlib import Path
 
 def run_gobuster_dir(target: str,
@@ -8,9 +9,21 @@ def run_gobuster_dir(target: str,
     """
     Lance gobuster dir sur une cible et renvoie la liste des chemins trouvés.
     """
-    output_file = Path("/tmp") / f"wave_gobuster_{target.replace('://', '_').replace('/', '_')}.txt"
 
-    cmd = [
+    cmd_mkdir = [
+        "mkdir",
+        "/tmp/wave_scans",
+    ]
+
+    result = subprocess.run(
+        cmd_mkdir,
+        text=False,
+        capture_output=False,
+    )
+
+    output_file = Path("/tmp/wave_scans") / f"wave_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_gobuster_{target.replace('://', '_').replace('/', '_')}.txt"
+
+    cmd_gb = [
         "gobuster",
         "dir",
         "-u", target,
@@ -23,19 +36,20 @@ def run_gobuster_dir(target: str,
     ]
 
     result = subprocess.run(
-        cmd,
+        cmd_gb,
         text=True,
         capture_output=True,
     )
 
     if result.returncode != 0:
-        raise RuntimeError(f"Gobuster failed: {result.stderr.strip()}")
+        raise RuntimeError(f"[✖] Gobuster failed : {result.stderr.strip()}")
+        
 
-    found_paths: list[str] = []
-    if output_file.exists():
-        with output_file.open() as f:
-            for line in f:
-                # Format typique: /admin (Status: 301) [Size: 0]
-                found_paths.append(line.strip())
+    # found_paths: list[str] = []
+    # if output_file.exists():
+    #     with output_file.open() as f:
+    #         for line in f:
+    #             # Format typique: /admin (Status: 301) [Size: 0]
+    #             found_paths.append(line.strip())
 
-    return found_paths
+    return str(output_file)

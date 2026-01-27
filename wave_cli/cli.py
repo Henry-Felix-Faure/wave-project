@@ -26,21 +26,18 @@ _.-'     '._   \_/\_/ \__,_| \_/ \____|  _.'     '-._
 @cli.command()
 @click.argument("target")
 @click.option("--output", "-o", type=click.Path(), help="Output PDF path")
-def scan(target, output):
+@click.option("--gobuster-wordlist", "-w", type=click.Path(), default="/usr/share/wordlists/dirb/big.txt", help="Path to gobuster wordlist")
+def scan(target, output, gobuster_wordlist):
     """Scan a target website for vulnerabilities"""
     banner()
     click.echo(f"[*] Starting scan on {target}...")
     click.echo(f"[*] Step 1 : Running gobuster on {target}...")
     try:
-        paths = run_gobuster_dir(target)
+        output_file_gobuster = run_gobuster_dir(target, wordlist=gobuster_wordlist)
+        click.echo(f"[✓] Gobuster scan completed, output saved to {output_file_gobuster}")
     except Exception as e:
         click.echo(f"[!] Gobuster error: {e}")
         return
-
-    click.echo("[*] Gobuster found paths:")
-    for p in paths:
-        click.echo(f"  {p}")
-
 
 if __name__ == "__main__":
     cli()
