@@ -5,17 +5,13 @@ from pathlib import Path
 
 def run_gobuster_dir(target: str,
                      wordlist: str = "/usr/share/wordlists/dirb/big.txt",
-                     threads: int = 50) -> list[str]:
+                     threads: int = 50) -> Path:
     """
     Lance gobuster dir sur une cible et renvoie la liste des chemins trouvés.
     """
-
-    # Créer le dossier /tmp/wave_scans s'il n'existe pas
-    scan_dir = Path("/tmp/wave_scans")
-    scan_dir.mkdir(exist_ok=True)  # Pas d'erreur si existe
     
     # Fichier output avec timestamp
-    output_file = scan_dir / f"wave_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_gobuster_{target.replace('://', '_').replace('/', '_')}.txt"
+    output_file = Path("/tmp/wave_scans") / f"wave_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_gobuster_{target.replace('://', '_').replace('/', '_')}.txt"
 
     cmd_gb = [
         "gobuster",
