@@ -1,6 +1,7 @@
 # wave_cli/cli.py
 import click
 from wave_cli import __version__
+from wave_cli.scanners.gobuster_scanner import run_gobuster_dir
 
 
 @click.group(invoke_without_command=True)
@@ -28,7 +29,17 @@ _.-'     '._   \_/\_/ \__,_| \_/ \____|  _.'     '-._
 def scan(target, output):
     """Scan a target website for vulnerabilities"""
     banner()
-    click.echo(f"[*] Scanning {target}...")
+    click.echo(f"[*] Starting scan on {target}...")
+    click.echo(f"[*] Step 1 : Running gobuster on {target}...")
+    try:
+        paths = run_gobuster_dir(target)
+    except Exception as e:
+        click.echo(f"[!] Gobuster error: {e}")
+        return
+
+    click.echo("[*] Gobuster found paths:")
+    for p in paths:
+        click.echo(f"  {p}")
 
 
 if __name__ == "__main__":
