@@ -1,5 +1,6 @@
-import pkg_resources
+
 import datetime
+from importlib import resources
 from pathlib import Path
 
 def get_run_dir() -> Path:
@@ -16,7 +17,4 @@ def get_output_file(prefix: str, target: str, run_dir: Path, extension: str = "t
 
 def get_wordlist(name: str) -> Path:
     """Récupère une wordlist depuis le package."""
-    return Path(pkg_resources.resource_filename(
-        "wave_cli.wordlists", 
-        name
-    ))
+    return resources.files("wave_cli.wordlists") / name
