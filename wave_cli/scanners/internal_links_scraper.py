@@ -11,7 +11,7 @@ def scrape_internal_links(initial_target: str,
     """Scrape tous les liens <a href> d'une page."""
 
     # Fichier output avec timestamp
-    output_file = Path("/tmp/wave_scans") / f"wave_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_internal_links_{initial_target.replace('://', '_').replace('/', '_')}.txt"
+    output_file = Path("/tmp/wave_scans") / f"wave_{datetime.datetime.now().strftime('%Y-%m-%d_%Hh%Mm%Ss')}_internal_links_{initial_target.replace('://', '_').replace('/', '_')}.txt"
     
     targets = [initial_target]
     absolute_links = set()
@@ -22,7 +22,7 @@ def scrape_internal_links(initial_target: str,
             response = requests.get(current_target, timeout=10)
             response.raise_for_status()
         except Exception as e:
-            click.echo(f"[✖] Failed to fetch {current_target}: {e}")
+            click.echo(click.style("[✖]", fg="red", bold=True) + f" Failed to fetch {current_target}: {e}")
             # raise RuntimeError(f"Failed to fetch {current_target}: {e}")
     
         # Extraire tous les href

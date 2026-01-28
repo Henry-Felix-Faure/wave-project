@@ -38,26 +38,25 @@ def scan(target, output, gobuster_wordlist, link_limit):
     scan_dir = Path("/tmp/wave_scans")
     scan_dir.mkdir(exist_ok=True)  # Pas d'erreur si existe
 
-    click.echo(f"[*] Starting scan on {target}...")
+    click.echo(click.style(f"[*] Starting scan on {target}...", bold=True))
 
     """Step 1 : Running gobuster"""
     click.echo(f"[*] Step 1 : Running gobuster on {target}...")
     try:
         output_file_gobuster = run_gobuster_dir(target, wordlist=gobuster_wordlist)
-        click.echo(f"[✓] Gobuster scan completed, output saved to {output_file_gobuster}")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster scan completed, output saved to {output_file_gobuster}")
     except Exception as e:
-        click.echo(f"[!] Gobuster failed : {e}")
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster failed : {e}")
     
     """Step 2 : Scraping internal links"""
     click.echo(f"[*] Step 2 : Scraping internal links from {target}...")
     try:
         output_file_internal_links = scrape_internal_links(target, scrap_limit=link_limit)
-        click.echo(f"[✓] Internal links scraped, output saved to {output_file_internal_links}")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Internal links scraped, output saved to {output_file_internal_links}")
     except Exception as e:
-        click.echo(f"[!] Failed to scrape internal links: {e}")
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Failed to scrape internal links: {e}")
 
-    
-    click.echo("[✓] Scan completed successfully!")
+    click.echo(click.style("🎉 Scan completed !", bold=True))
     return 0
 
 if __name__ == "__main__":
