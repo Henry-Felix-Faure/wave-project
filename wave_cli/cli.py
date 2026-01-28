@@ -1,18 +1,12 @@
 # wave_cli/cli.py
 import click
+import datetime
 from pathlib import Path
 from wave_cli import __version__
+from wave_cli.scanners.utils import get_run_dir, get_output_file
 from wave_cli.scanners.gobuster_scanner import run_gobuster_dir
+from wave_cli.scanners.subdomain_scanner import run_subdomain_enum
 from wave_cli.scanners.internal_links_scraper import scrape_internal_links
-
-
-@click.group(invoke_without_command=True)
-@click.version_option(version=__version__, message="WAVE v"+str(__version__))
-@click.pass_context
-def cli(ctx):
-    """🌊🔍 WAVE - Website Assessment Vulnerability Engine"""
-    if ctx.invoked_subcommand is None:
-        banner()
 
 
 def banner():
@@ -25,36 +19,58 @@ _.-'     '._   \_/\_/ \__,_| \_/ \____|  _.'     '-._
                """)
 
 
+@click.group(invoke_without_command=True)
+@click.version_option(version=__version__, message="WAVE v"+str(__version__))
+@click.pass_context
+def cli(ctx):
+    """🌊🔍 WAVE - Website Assessment Vulnerability Engine"""
+    if ctx.invoked_subcommand is None:
+        banner()
+
+
 @cli.command()
 @click.argument("target")
 @click.option("--output", "-o", type=click.Path(), help="Output PDF path")
-@click.option("--gobuster-wordlist", "-w", type=click.Path(), default="/usr/share/wordlists/dirb/big.txt", help="Path to gobuster wordlist")
-@click.option("--link-limit", "-ll", type=int, default=100, help="Maximum number of links to scrape")
-def scan(target, output, gobuster_wordlist, link_limit):
+@click.option("--gobuster-wordlist", "-g", type=click.Path(), default="dir-big.txt", help="Path to gobuster wordlist")
+@click.option("--subdomain-wordlist", "-s", type=click.Path(), default="subdomains-top1million-20000.txt", help="Path to subdomain wordlist")
+@click.option("--link-limit", "-l", type=int, default=100, help="Maximum number of links to scrape")
+def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     """Scan a target website for vulnerabilities"""
     banner()
 
-    # Créer le dossier /tmp/wave_scans s'il n'existe pas
-    scan_dir = Path("/tmp/wave_scans")
-    scan_dir.mkdir(exist_ok=True)  # Pas d'erreur si existe
-
+    run_dir = get_run_dir()
+    click.echo(f"[*] Run directory : {run_dir}")
     click.echo(click.style(f"[*] Starting scan on {target}...", bold=True))
 
-    """Step 1 : Running gobuster"""
-    click.echo(f"[*] Step 1 : Running gobuster on {target}...")
+
+    """Step 1 : Running gobuster dir mode"""
+    click.echo(f"[*] Step 1 : Running gobuster dir mode on {target}...")
     try:
-        output_file_gobuster = run_gobuster_dir(target, wordlist=gobuster_wordlist)
-        click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster scan completed, output saved to {output_file_gobuster}")
+        output_file_gobuster_dir = get_output_file("gobuster-dir", target, run_dir)
+        run_gobuster_dir(target, output_file_gobuster_dir, wordlist=gobuster_wordlist)
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dir scan completed, output saved to {output_file_gobuster_dir}")
     except Exception as e:
-        click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster failed : {e}")
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dir scan failed : {e}")
     
+
     """Step 2 : Scraping internal links"""
     click.echo(f"[*] Step 2 : Scraping internal links from {target}...")
     try:
-        output_file_internal_links = scrape_internal_links(target, scrap_limit=link_limit)
+        output_file_internal_links = get_output_file("internal_links", target, run_dir)
+        scrape_internal_links(target, output_file_internal_links, scrap_limit=link_limit)
         click.echo(click.style("[✓]", fg="green", bold=True) + f" Internal links scraped, output saved to {output_file_internal_links}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Failed to scrape internal links: {e}")
+
+
+    """Step 3 : Running gobuster dns mode"""
+    click.echo(f"[*] Step 3 : Running gobuster dns mode on {target}...")
+    try:
+        output_file_gobuster_dns = get_output_file("gobuster-dns", target, run_dir)
+        run_subdomain_enum(target, output_file_gobuster_dns, wordlist=subdomain_wordlist)
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dns scan completed, output saved to {output_file_gobuster_dns}")
+    except Exception as e:
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dns scan failed : {e}")
 
     click.echo(click.style("🎉 Scan completed !", bold=True))
     return 0

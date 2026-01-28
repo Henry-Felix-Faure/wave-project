@@ -2,22 +2,24 @@
 import subprocess
 import datetime
 from pathlib import Path
+from wave_cli.scanners.utils import get_wordlist
 
 def run_gobuster_dir(target: str,
-                     wordlist: str = "/usr/share/wordlists/dirb/big.txt",
-                     threads: int = 50) -> str:
+                     output_file: Path,
+                     wordlist: str = "dir-big.txt",
+                     threads: int = 50,
+                     ) -> str:
     """
     Lance gobuster dir sur une cible et renvoie la liste des chemins trouvés.
     """
-    
-    # Fichier output avec timestamp
-    output_file = Path("/tmp/wave_scans") / f"wave_{datetime.datetime.now().strftime('%Y-%m-%d_%Hh%Mm%Ss')}_gobuster_{target.replace('://', '_').replace('/', '_')}.txt"
 
+    wordlist_path = get_wordlist(wordlist)
+    
     cmd_gb = [
         "gobuster",
         "dir",
         "-u", target,
-        "-w", wordlist,
+        "-w", wordlist_path,
         "-t", str(threads),
         "-o", str(output_file),
         "-s", "200,401,403",
@@ -33,7 +35,6 @@ def run_gobuster_dir(target: str,
 
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip())
-        
 
     # found_paths: list[str] = []
     # if output_file.exists():

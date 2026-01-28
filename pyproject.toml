@@ -42,3 +42,6 @@ wave = "wave_cli.cli:cli"
 
 [tool.setuptools]
 packages = ["wave_cli"]
+
+[tool.setuptools.package-data]
+"wave_cli.wordlists" = ["*.txt"]
