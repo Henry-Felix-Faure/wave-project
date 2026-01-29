@@ -1,9 +1,10 @@
 
 import re
 import datetime
-from importlib import resources
 from pathlib import Path
+from importlib import resources
 from urllib.parse import urlparse
+
 
 def get_run_dir() -> Path:
     """Crée un dossier unique pour ce run."""
@@ -12,17 +13,30 @@ def get_run_dir() -> Path:
     run_dir.mkdir(exist_ok=True, parents=True)
     return run_dir
 
+
 def get_output_file(prefix: str, target: str, run_dir: Path, extension: str = "txt") -> Path:
     """Génère un fichier dans le dossier du run."""
     safe_target = target.replace('://', '_').replace('/', '_')
     return run_dir / f"{prefix}_{safe_target}.{extension}"
 
-def get_wordlist(name: str) -> Path:
-    """Récupère une wordlist depuis le package."""
-    return resources.files("wave_cli.wordlists") / name
 
-def extract_domain(target: str) -> str:
-    """Extrait le domaine pur pour gobuster DNS."""
+def get_wordlist(name: str) -> str:
+    """Récupère une wordlist (bundlée ou custom path)."""
+    # 1. C'est un chemin absolu/relatif
+    path = Path(name)
+    if path.exists():
+        return str(path.resolve())
+
+    # 2. Sinon on cherche dans le package
+    try:
+        packaged_wordlist = resources.files("wave_cli.wordlists") / name
+        return str(packaged_wordlist)
+    except (FileNotFoundError, KeyError):
+        raise FileNotFoundError(f"Wordlist not found : {name}")
+
+
+def cleanse_url(target: str) -> str:
+    """Nettoie l'URL"""
     parsed = urlparse(target)
     domain = parsed.netloc or parsed.path.split('/')[0]
     

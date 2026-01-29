@@ -1,6 +1,5 @@
 # wave_cli/scanners/gobuster_scanner.py
 import subprocess
-import datetime
 from pathlib import Path
 from wave_cli.scanners.utils import get_wordlist
 

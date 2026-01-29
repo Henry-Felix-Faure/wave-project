@@ -3,10 +3,10 @@ import click
 import datetime
 from pathlib import Path
 from wave_cli import __version__
-from wave_cli.scanners.utils import get_run_dir, get_output_file
 from wave_cli.scanners.gobuster_scanner import run_gobuster_dir
 from wave_cli.scanners.subdomain_scanner import run_subdomain_enum
 from wave_cli.scanners.internal_links_scraper import scrape_internal_links
+from wave_cli.scanners.utils import get_run_dir, get_output_file, cleanse_url
 
 
 def banner():
@@ -39,35 +39,36 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     banner()
 
     run_dir = get_run_dir()
+    cleaned_target = cleanse_url(target)
     click.echo(f"[*] Run directory : {run_dir}")
-    click.echo(click.style(f"[*] Starting scan on {target}...", bold=True))
+    click.echo(click.style(f"[*] Starting scan on {cleaned_target}...", bold=True))
 
 
     """Step 1 : Running gobuster dir mode"""
-    click.echo(f"[*] Step 1 : Running gobuster dir mode on {target}...")
+    click.echo(f"[*] Step 1 : Running gobuster dir mode on {cleaned_target}...")
     try:
-        output_file_gobuster_dir = get_output_file("gobuster-dir", target, run_dir)
-        run_gobuster_dir(target, output_file_gobuster_dir, wordlist=gobuster_wordlist)
+        output_file_gobuster_dir = get_output_file("gobuster-dir", cleaned_target, run_dir)
+        run_gobuster_dir(cleaned_target, output_file_gobuster_dir, wordlist=gobuster_wordlist)
         click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dir scan completed, output saved to {output_file_gobuster_dir}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dir scan failed : {e}")
     
 
     """Step 2 : Scraping internal links"""
-    click.echo(f"[*] Step 2 : Scraping internal links from {target}...")
+    click.echo(f"[*] Step 2 : Scraping internal links from {cleaned_target}...")
     try:
-        output_file_internal_links = get_output_file("internal_links", target, run_dir)
-        scrape_internal_links(target, output_file_internal_links, scrap_limit=link_limit)
+        output_file_internal_links = get_output_file("internal_links", cleaned_target, run_dir)
+        scrape_internal_links(cleaned_target, output_file_internal_links, scrap_limit=link_limit)
         click.echo(click.style("[✓]", fg="green", bold=True) + f" Internal links scraped, output saved to {output_file_internal_links}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Failed to scrape internal links: {e}")
 
 
     """Step 3 : Running gobuster dns mode"""
-    click.echo(f"[*] Step 3 : Running gobuster dns mode on {target}...")
+    click.echo(f"[*] Step 3 : Running gobuster dns mode on {cleaned_target}...")
     try:
-        output_file_gobuster_dns = get_output_file("gobuster-dns", target, run_dir)
-        run_subdomain_enum(target, output_file_gobuster_dns, wordlist=subdomain_wordlist)
+        output_file_gobuster_dns = get_output_file("gobuster-dns", cleaned_target, run_dir)
+        run_subdomain_enum(cleaned_target, output_file_gobuster_dns, wordlist=subdomain_wordlist)
         click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dns scan completed, output saved to {output_file_gobuster_dns}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dns scan failed : {e}")

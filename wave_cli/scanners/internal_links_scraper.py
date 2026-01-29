@@ -1,8 +1,6 @@
 import re
 import click
-import datetime
 import requests
-import subprocess
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
