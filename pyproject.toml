@@ -25,12 +25,13 @@ dependencies = [
     "requests>=2.31.0",
     "beautifulsoup4>=4.12.0",
     "pydantic>=2.0.0",
+    "reportlab>=4.0.0"
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0", "black>=23.0", "flake8>=6.0", "mypy>=1.0"]
 scanning = ["nmap>=0.0.1", "gobuster>=3.0"]  # À adapter
-reporting = ["reportlab>=4.0.0", "weasyprint>=58.0"]
+reporting = ["weasyprint>=58.0"]
 
 [project.urls]
 Repository = "https://github.com/Henry-Felix-Faure/wave-project"

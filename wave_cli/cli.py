@@ -3,6 +3,8 @@ import click
 import datetime
 from pathlib import Path
 from wave_cli import __version__
+from wave_cli.report_generator import WavePDFReport
+from wave_cli.report_parser import collect_findings
 from wave_cli.scanners.gobuster_scanner import run_gobuster_dir
 from wave_cli.scanners.subdomain_scanner import run_subdomain_enum
 from wave_cli.scanners.internal_links_scraper import scrape_internal_links
@@ -72,6 +74,26 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
         click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dns scan completed, output saved to {output_file_gobuster_dns}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dns scan failed : {e}")
+
+
+    """Step 4 : Generating PDF report"""
+    click.echo(f"[*] Step 4 : Generating PDF report...")
+    try:
+        findings = collect_findings(run_dir)
+        
+        # Déterminer le chemin du PDF
+        if output:
+            report_path = Path(output)
+        else:
+            report_path = run_dir / f"wave_report_{cleaned_target}.pdf"
+        
+        pdf_report = WavePDFReport(report_path, target)
+        pdf_report.generate_report(findings)
+        
+        click.echo(click.style("✓", fg="green", bold=True) + f" PDF report generated : {report_path}")
+    except Exception as e:
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Failed to generate report : {e}")
+
 
     click.echo(click.style("🎉 Scan completed !", bold=True))
     return 0
