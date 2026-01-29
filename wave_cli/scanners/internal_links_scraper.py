@@ -15,11 +15,11 @@ def scrape_internal_links(initial_target: str,
     while len(targets) > 0 and len(absolute_links) < scrap_limit:
         current_target = targets.pop(0)
         try:
-            response = requests.get(current_target, timeout=10)
+            response = requests.get(current_target, timeout=10, verify=False)
             response.raise_for_status()
         except Exception as e:
             click.echo(click.style("[✖]", fg="red", bold=True) + f" Failed to fetch {current_target}: {e}")
-            # raise RuntimeError(f"Failed to fetch {current_target}: {e}")
+            continue
     
         # Extraire tous les href
         links = re.findall(r'href=["\'](.*?)["\']', response.text)
