@@ -1,14 +1,8 @@
 import subprocess
 from pathlib import Path
 import datetime
-from urllib.parse import urlparse
+from wave_cli.scanners.utils import extract_domain
 from wave_cli.scanners.utils import get_wordlist
-
-def extract_domain(target: str) -> str:
-    """Extrait le domaine d'une URL."""
-    parsed = urlparse(target)
-    domain = parsed.netloc or parsed.path.split('/')[0]
-    return domain.replace('www.', '')
 
 def run_subdomain_enum(target: str,
                        output_file: Path,
@@ -17,14 +11,14 @@ def run_subdomain_enum(target: str,
     """
     Énumère les sous-domaines avec gobuster DNS.
     """
-    
+
     domain = extract_domain(target)
     wordlist_path = get_wordlist(wordlist)
 
     cmd = [
         "gobuster",
         "dns",
-        "-d", domain,
+        "--domain", domain,
         "-w", wordlist_path,
         "-t", str(threads),
         "-o", str(output_file),
