@@ -55,10 +55,10 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     
 
     """Step 2 : Scraping internal links"""
-    click.echo(f"[*] Step 2 : Scraping internal links from {cleaned_target}...")
+    click.echo(f"[*] Step 2 : Scraping internal links from {target}...")
     try:
-        output_file_internal_links = get_output_file("internal_links", cleaned_target, run_dir)
-        scrape_internal_links(cleaned_target, output_file_internal_links, scrap_limit=link_limit)
+        output_file_internal_links = get_output_file("internal_links", target, run_dir)
+        scrape_internal_links(target, output_file_internal_links, scrap_limit=link_limit)
         click.echo(click.style("[✓]", fg="green", bold=True) + f" Internal links scraped, output saved to {output_file_internal_links}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Failed to scrape internal links: {e}")
