@@ -4,6 +4,11 @@ import requests
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
+# Supprimer le warning SSL de urllib3
+requests.packages.urllib3.disable_warnings(
+    requests.packages.urllib3.exceptions.InsecureRequestWarning
+)
+
 def scrape_internal_links(initial_target: str,
                           output_file: Path,
                           scrap_limit: int = 100) -> str:

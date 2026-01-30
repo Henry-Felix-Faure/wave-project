@@ -90,7 +90,7 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
         pdf_report = WavePDFReport(report_path, target)
         pdf_report.generate_report(findings)
         
-        click.echo(click.style("✓", fg="green", bold=True) + f" PDF report generated : {report_path}")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" PDF report generated : {report_path}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Failed to generate report : {e}")
 
