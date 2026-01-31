@@ -43,14 +43,14 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     run_dir = get_run_dir()
     cleaned_target = cleanse_url(target)
     click.echo(f"[*] Run directory : {run_dir}")
-    click.echo(click.style(f"[*] Starting scan on {cleaned_target}...", bold=True))
+    click.echo(click.style(f"[*] Starting scan on {target}...", bold=True))
 
 
     """Step 1 : Running gobuster dir mode"""
-    click.echo(f"[*] Step 1 : Running gobuster dir mode on {cleaned_target}...")
+    click.echo(f"[*] Step 1 : Running gobuster dir mode on {target}...")
     try:
-        output_file_gobuster_dir = get_output_file("gobuster-dir", cleaned_target, run_dir)
-        run_gobuster_dir(cleaned_target, output_file_gobuster_dir, wordlist=gobuster_wordlist)
+        output_file_gobuster_dir = get_output_file("gobuster-dir", target, run_dir)
+        run_gobuster_dir(target, output_file_gobuster_dir, wordlist=gobuster_wordlist)
         click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dir scan completed, output saved to {output_file_gobuster_dir}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dir scan failed : {e}")

@@ -21,8 +21,9 @@ def run_gobuster_dir(target: str,
         "-w", wordlist_path,
         "-t", str(threads),
         "-o", str(output_file),
-        "-s", "200,401",
+        "-s", "200,301,302,401",
         "-b", "",
+        "--xl", 0,     # ne prend pas en compte les réponse de taille 0
         "-q",          # quiet (moins de bruit)
     ]
 
