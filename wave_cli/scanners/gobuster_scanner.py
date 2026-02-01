@@ -1,7 +1,6 @@
-# wave_cli/scanners/gobuster_scanner.py
 import subprocess
 from pathlib import Path
-from wave_cli.scanners.utils import get_wordlist
+from wave_cli.utils import get_wordlist
 
 def run_gobuster_dir(target: str,
                      output_file: Path,
@@ -23,7 +22,7 @@ def run_gobuster_dir(target: str,
         "-o", str(output_file),
         "-s", "200,301,302,401",
         "-b", "",
-        "--xl", 0,     # ne prend pas en compte les réponse de taille 0
+        "--xl", "0",     # ne prend pas en compte les réponse de taille 0
         "-q",          # quiet (moins de bruit)
     ]
 

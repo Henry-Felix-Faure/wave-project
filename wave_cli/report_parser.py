@@ -1,6 +1,6 @@
+import click
 from pathlib import Path
 from typing import Dict, List
-import click
 
 def parse_gobuster_output(file_path: Path) -> List[str]:
     """Parse la sortie gobuster et retourne les chemins trouvés."""
@@ -81,7 +81,7 @@ def parse_security_headers_output(file_path: Path) -> Dict[str, List[str]]:
             
             # Parser headers manquants par sévérité
             if "MISSING HEADERS" in content:
-                section = content.split("MISSING HEADERS")[1].split("\n\n")[0]
+                section = content.split("MISSING HEADERS")[1].split("\n\n\n")[0]
                 for line in section.split("\n"):
                     if "[HIGH]" in line:
                         header = line.split("• ")[1].split(" [")[0]
@@ -95,7 +95,7 @@ def parse_security_headers_output(file_path: Path) -> Dict[str, List[str]]:
             
             # Parser configurations faibles
             if "WEAK CONFIGURATIONS" in content:
-                section = content.split("WEAK CONFIGURATIONS")[1].split("\n\n")[0]
+                section = content.split("WEAK CONFIGURATIONS")[1].split("\n\n\n")[0]
                 for line in section.split("\n"):
                     if line.strip().startswith("•"):
                         findings["weak"].append(line.strip()[2:])
@@ -131,6 +131,8 @@ def collect_findings(run_dir: Path) -> Dict[str, List[str]]:
                 findings['Security Issues'].append(f"[HIGH] Missing header: {header}")
             for header in headers_findings['missing_medium']:
                 findings['Security Issues'].append(f"[MEDIUM] Missing header: {header}")
+            for header in headers_findings['missing_low']:
+                findings['Security Issues'].append(f"[LOW] Missing header: {header}")            
             for weak in headers_findings['weak']:
                 findings['Security Issues'].append(f"[WEAK] {weak}")
     

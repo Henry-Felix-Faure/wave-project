@@ -1,4 +1,3 @@
-# wave_cli/cli.py
 import click
 from pathlib import Path
 from wave_cli import __version__
@@ -6,8 +5,8 @@ from wave_cli.report_generator import WavePDFReport
 from wave_cli.report_parser import collect_findings
 from wave_cli.scanners.gobuster_scanner import run_gobuster_dir
 from wave_cli.scanners.subdomain_scanner import run_subdomain_enum
+from wave_cli.utils import get_run_dir, get_output_file, cleanse_url
 from wave_cli.scanners.internal_links_scraper import scrape_internal_links
-from wave_cli.scanners.utils import get_run_dir, get_output_file, cleanse_url
 from wave_cli.scanners.owasp.A02_security_headers import check_security_headers
 
 
@@ -81,7 +80,7 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     try:
         output_file_headers = get_output_file("A02_security-headers", target, run_dir)
         check_security_headers(target, output_file_headers)
-        click.echo(click.style("[✓]", fg="green", bold=True) + f" Security headers check completed")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Security headers check completed, output saved to {output_file_headers}")
     except Exception as e:
         click.echo(click.style("[!]", fg="red", bold=True) + f" Security headers check failed : {e}")
 

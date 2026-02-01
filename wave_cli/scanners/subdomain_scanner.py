@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from wave_cli.scanners.utils import get_wordlist
+from wave_cli.utils import get_wordlist
 
 def run_subdomain_enum(domain: str,
                        output_file: Path,
