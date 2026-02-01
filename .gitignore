@@ -19,3 +19,7 @@ env/
 build/
 dist/
 *.egg-info/
+
+# Custom ignores
+docs/
+tests/

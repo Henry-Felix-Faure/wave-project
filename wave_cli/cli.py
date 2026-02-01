@@ -1,6 +1,5 @@
 # wave_cli/cli.py
 import click
-import datetime
 from pathlib import Path
 from wave_cli import __version__
 from wave_cli.report_generator import WavePDFReport
@@ -9,6 +8,7 @@ from wave_cli.scanners.gobuster_scanner import run_gobuster_dir
 from wave_cli.scanners.subdomain_scanner import run_subdomain_enum
 from wave_cli.scanners.internal_links_scraper import scrape_internal_links
 from wave_cli.scanners.utils import get_run_dir, get_output_file, cleanse_url
+from wave_cli.scanners.owasp.A02_security_headers import check_security_headers
 
 
 def banner():
@@ -59,7 +59,7 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     """Step 2 : Scraping internal links"""
     click.echo(f"[*] Step 2 : Scraping internal links from {target}...")
     try:
-        output_file_internal_links = get_output_file("internal_links", target, run_dir)
+        output_file_internal_links = get_output_file("internal-links", target, run_dir)
         scrape_internal_links(target, output_file_internal_links, scrap_limit=link_limit)
         click.echo(click.style("[✓]", fg="green", bold=True) + f" Internal links scraped, output saved to {output_file_internal_links}")
     except Exception as e:
@@ -76,8 +76,18 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
         click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dns scan failed : {e}")
 
 
-    """Step 4 : Generating PDF report"""
-    click.echo(f"[*] Step 4 : Generating PDF report...")
+    """Step 4 : Checking security headers (OWASP A02)"""
+    click.echo(f"[*] Step 4 : (OWASP A02:2025) Checking security headers on {target}...")
+    try:
+        output_file_headers = get_output_file("A02_security-headers", target, run_dir)
+        check_security_headers(target, output_file_headers)
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Security headers check completed")
+    except Exception as e:
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Security headers check failed : {e}")
+
+
+    """Step 5 : Generating PDF report"""
+    click.echo(f"[*] Step 5 : Generating PDF report...")
     try:
         findings = collect_findings(run_dir)
         

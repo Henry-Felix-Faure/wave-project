@@ -64,12 +64,55 @@ def parse_internal_links_output(file_path: Path) -> List[str]:
     return findings
 
 
+def parse_security_headers_output(file_path: Path) -> Dict[str, List[str]]:
+    """Parse la sortie du security headers checker."""
+    findings = {
+        "missing_high": [],
+        "missing_medium": [],
+        "missing_low": [],
+        "weak": []
+    }
+    if not file_path.exists():
+        return findings
+    
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+            
+            # Parser headers manquants par sévérité
+            if "MISSING HEADERS" in content:
+                section = content.split("MISSING HEADERS")[1].split("\n\n")[0]
+                for line in section.split("\n"):
+                    if "[HIGH]" in line:
+                        header = line.split("• ")[1].split(" [")[0]
+                        findings["missing_high"].append(header)
+                    elif "[MEDIUM]" in line:
+                        header = line.split("• ")[1].split(" [")[0]
+                        findings["missing_medium"].append(header)
+                    elif "[LOW]" in line:
+                        header = line.split("• ")[1].split(" [")[0]
+                        findings["missing_low"].append(header)
+            
+            # Parser configurations faibles
+            if "WEAK CONFIGURATIONS" in content:
+                section = content.split("WEAK CONFIGURATIONS")[1].split("\n\n")[0]
+                for line in section.split("\n"):
+                    if line.strip().startswith("•"):
+                        findings["weak"].append(line.strip()[2:])
+    
+    except Exception as e:
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Error parsing security headers: {e}")
+    
+    return findings
+
+
 def collect_findings(run_dir: Path) -> Dict[str, List[str]]:
     """Collecte les résultats des différents scans dans un dictionnaire."""
     findings = {
         'Directories': [],
         'Subdomains': [],
-        'Internal Links': []
+        'Internal Links': [],
+        'Security Issues': []
     }
     
     # Chercher les fichiers de résultats
@@ -78,7 +121,17 @@ def collect_findings(run_dir: Path) -> Dict[str, List[str]]:
             findings['Directories'] = parse_gobuster_output(file_path)
         elif 'gobuster-dns' in file_path.name:
             findings['Subdomains'] = parse_subdomain_output(file_path)
-        elif 'internal_links' in file_path.name:
+        elif 'internal-links' in file_path.name:
             findings['Internal Links'] = parse_internal_links_output(file_path)
+        elif 'A02_security-headers' in file_path.name:
+            headers_findings = parse_security_headers_output(file_path)
+
+            # Formater pour le rapport
+            for header in headers_findings['missing_high']:
+                findings['Security Issues'].append(f"[HIGH] Missing header: {header}")
+            for header in headers_findings['missing_medium']:
+                findings['Security Issues'].append(f"[MEDIUM] Missing header: {header}")
+            for weak in headers_findings['weak']:
+                findings['Security Issues'].append(f"[WEAK] {weak}")
     
     return findings
