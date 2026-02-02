@@ -7,6 +7,7 @@ from wave_cli.scanners.gobuster_scanner import run_gobuster_dir
 from wave_cli.scanners.subdomain_scanner import run_subdomain_enum
 from wave_cli.utils import get_run_dir, get_output_file, cleanse_url
 from wave_cli.scanners.internal_links_scraper import scrape_internal_links
+from wave_cli.scanners.owasp.A04_cryptographic_failures import run_crypto_scan
 from wave_cli.scanners.owasp.A02_security_headers import check_security_headers
 
 
@@ -85,8 +86,18 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
         click.echo(click.style("[!]", fg="red", bold=True) + f" Security headers check failed : {e}")
 
 
-    """Step 5 : Generating PDF report"""
-    click.echo(f"[*] Step 5 : Generating PDF report...")
+    """Step 5 : Checking cryptographic failures (OWASP A04)"""
+    click.echo(f"[*] Step 5 : (OWASP A04:2025) Checking cryptographic failures on {target}...")
+    try:
+        output_file_crypto = get_output_file("A04_crypto-failures", target, run_dir)
+        run_crypto_scan(target, output_file_crypto)
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Cryptographic failures check completed, output saved to {output_file_crypto}")
+    except Exception as e:
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Cryptographic failures check failed : {e}")
+
+
+    """Step X : Generating PDF report"""
+    click.echo(f"[*] Step X : Generating PDF report...")
     try:
         findings = collect_findings(run_dir)
         

@@ -9,32 +9,26 @@ SECURITY_HEADERS = {
     "Content-Security-Policy": {
         "description": "Protects against XSS and code injection",
         "severity": "HIGH",
-        "owasp": "A02:2025 - Security Misconfiguration"
     },
     "Strict-Transport-Security": {
         "description": "Forces HTTPS and protects against MITM",
         "severity": "HIGH",
-        "owasp": "A02:2025 - Security Misconfiguration"
     },
     "X-Frame-Options": {
         "description": "Protects against clickjacking",
         "severity": "MEDIUM",
-        "owasp": "A02:2025 - Security Misconfiguration"
     },
     "X-Content-Type-Options": {
         "description": "Prevents MIME sniffing attacks",
         "severity": "MEDIUM",
-        "owasp": "A02:2025 - Security Misconfiguration"
     },
     "Referrer-Policy": {
         "description": "Controls information in Referrer header",
         "severity": "LOW",
-        "owasp": "A02:2025 - Security Misconfiguration"
     },
     "Permissions-Policy": {
         "description": "Controls access to features (camera, mic, etc.)",
         "severity": "LOW",
-        "owasp": "A02:2025 - Security Misconfiguration"
     }
 }
 
@@ -157,7 +151,7 @@ def save_results(output_file: Path, results: Dict, target: str):
             for item in results["missing"]:
                 f.write(f"• {item['header']} [{item['severity']}]\n")
                 f.write(f"  → {item['description']}\n")
-                f.write(f"  → OWASP: {item['owasp']}\n\n")
+                f.write(f"  → OWASP: A02:2025 - Security Misconfiguration\n\n")
         
         # Headers faibles
         if results["weak"]:
@@ -175,3 +169,5 @@ def save_results(output_file: Path, results: Dict, target: str):
             for item in results["present"]:
                 f.write(f"✓ {item['header']}\n")
                 f.write(f"  {item['value']}\n\n")
+                
+    return

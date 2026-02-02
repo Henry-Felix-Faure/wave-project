@@ -192,9 +192,11 @@ class WavePDFReport:
         
         # 3. Sections par catégorie
         emojis = {
-            'Directories': '📁',
-            'Subdomains': '🔍',
-            'Internal Links': '🔗'
+            "Directories": "📁",
+            "Subdomains": "🔍",
+            "Internal Links": "🔗",
+            "Security Issues": "🛡️",
+            "Crypto Issues": "🔐",
         }
         
         for section, findings in findings_dict.items():
