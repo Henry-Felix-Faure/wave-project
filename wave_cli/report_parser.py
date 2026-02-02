@@ -106,75 +106,39 @@ def parse_security_headers_output(file_path: Path) -> Dict[str, List[str]]:
     return findings
 
 def parse_crypto_failures_output(file_path: Path) -> Dict[str, List[str]]:
-    """ Parse la sortie du scan cryptographique A04 et retourne des messages prêts pour le rapport """
+    """ Parse la sortie du scan cryptographique A04 """
     findings: Dict[str, List[str]] = {
         "https": [],
         "ssl_cert": [],
         "tls_version": [],
     }
-
     if not file_path.exists():
         return findings
-
+    
     try:
-        with open(file_path, "r") as f:
-            content = f.read()
-
-        # On découpe en blocs par section
-        sections = content.split("\n\n")
-
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
         current_section = None
-        for block in sections:
-            block = block.strip()
-            if not block:
-                continue
-            # Détection de la section courante
-            if block.startswith("HTTPS Redirect check"):
+
+        for line in lines:
+            line = line.strip()
+            # Détection des sections
+            if "HTTPS Redirect check" in line:
                 current_section = "https"
-                continue
-            elif block.startswith("SSL Certificate check"):
+            elif "SSL Certificate check" in line:
                 current_section = "ssl_cert"
-                continue
-            elif block.startswith("TLS Version check"):
+            elif "TLS Version check" in line:
                 current_section = "tls_version"
+            # Ignorer séparateurs et headers
+            elif line.startswith("-") or "OWASP" in line or "Cryptographic failures" in line:
                 continue
-
-            if current_section is None:
-                continue
-
-            # On récupère le status + message principal
-            lines = [l.strip() for l in block.splitlines() if l.strip()]
-            status = None
-            message = None
-            extra = []
-
-            for line in lines:
-                if line.startswith("• Result"):
-                    # ex: "• Result : WARNING"
-                    parts = line.split(":", 1)
-                    if len(parts) == 2:
-                        status = parts[1].strip()
-                elif line.startswith("→"):
-                    # ex: " → HTTPS available but no redirect from HTTP"
-                    text = line.lstrip("→").strip()
-                    # On ignore juste la ligne OWASP qui est redondante
-                    if text.startswith("OWASP:"):
-                        continue
-                    if message is None:
-                        message = text
-                    else:
-                        extra.append(text)
-
-            if status and message:
-                base = f"[{status}] {message}"
-                # Ajouter les infos complémentaires (expiry, issuer, TLS version, etc.) sur la même ligne
-                if extra:
-                    base += " | " + " | ".join(extra)
-                findings[current_section].append(base)
-
+            # Capturer les résultats
+            elif current_section and line:
+                findings[current_section].append(line)
+    
     except Exception as e:
-        click.echo(click.style("[!]", fg="red", bold=True) + f" Error parsing crypto failures output: {e}")
-
+        click.echo(click.style(f"[!]", fg='red', bold=True) + f" Error parsing cryptographic failures : {e}")
+    
     return findings
 
 
@@ -213,7 +177,7 @@ def collect_findings(run_dir: Path) -> Dict[str, List[str]]:
         
         elif "A04_crypto-failures" in file_path.name:
             crypto_findings = parse_crypto_failures_output(file_path)
-            
+
             for item in crypto_findings.get("https", []):
                 findings["Crypto Issues"].append(f"[HTTPS] {item}")
             for item in crypto_findings.get("ssl_cert", []):
