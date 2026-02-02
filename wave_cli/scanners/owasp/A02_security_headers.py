@@ -78,7 +78,6 @@ def check_security_headers(target: str, output_file: Path) -> Dict[str, List]:
                     "header": header_name,
                     "severity": header_info["severity"],
                     "description": header_info["description"],
-                    "owasp": header_info["owasp"]
                 })
         
         # Sauvegarder les résultats

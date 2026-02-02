@@ -1,11 +1,11 @@
 import ssl
-import json
 import click
 import socket
 import requests
+from pathlib import Path
+from typing import Dict, Any
 from datetime import datetime
 from urllib.parse import urlparse
-from typing import Dict, Any
 
 
 def check_https_redirect(target: str) -> Dict[str, Any]:
@@ -184,37 +184,38 @@ def run_crypto_scan(target: str, output_file: str) -> Dict[str, Any]:
     return output_file
 
 
-def save_results(output_file: str, results: Dict[str, Any], target: str) -> None:
-    """ Sauvegard les résultats dans l'output_file """
+def save_results(output_file: Path, results: Dict[str, Any], target: str) -> None:
+    """ Sauvegarde les résultats dans l'output_file """
     with output_file.open("w") as f:
         f.write(f"Cryptographic failures basic analysis for {target}\n")
         f.write("=" * 60 + "\n\n")
 
-        if results["https"]:
-            f.write(f"HTTPS Redirect check :\n")
+        https = results.get("https")
+        if https:
+            f.write("HTTPS Redirect check :\n")
             f.write("-" * 60 + "\n")
-            for item in results["https"]:
-                f.write(f"• Result : {item['status'].upper()}\n")
-                f.write(f"  → {item['message']}\n")
-                f.write(f"  → OWASP: A04:2025 - Cryptographic Failures\n\n")
+            f.write(f"• Result : {https.get('status', '').upper()}\n")
+            f.write(f" → {https.get('message', '')}\n")
+            f.write(f" → Final URL : {https.get('final_url', '')}\n")
+            f.write(" → OWASP: A04:2025 - Cryptographic Failures\n\n")
 
-        if results["ssl_cert"]:
-            f.write(f"\nSSL Certificate check :\n")
+        ssl_cert = results.get("ssl_cert")
+        if ssl_cert:
+            f.write("SSL Certificate check :\n")
             f.write("-" * 60 + "\n")
-            for item in results["ssl_cert"]:
-                f.write(f"• Result : {item['status'].upper()}\n")
-                f.write(f"  → {item['message']}\n")
-                f.write(f"  → Expiry Date : {item['expiry_date']}\n")
-                f.write(f"  → Issuer : {item['issuer']}\n")
-                f.write(f"  → Subject : {item['subject']}\n")
-                f.write(f"  → OWASP: A04:2025 - Cryptographic Failures\n\n")
+            f.write(f"• Result : {ssl_cert.get('status', '').upper()}\n")
+            f.write(f" → {ssl_cert.get('message', '')}\n")
+            f.write(f" → Expiry Date : {ssl_cert.get('expiry_date', '')}\n")
+            f.write(f" → Issuer : {ssl_cert.get('issuer', '')}\n")
+            f.write(f" → Subject : {ssl_cert.get('subject', '')}\n")
+            f.write(" → OWASP: A04:2025 - Cryptographic Failures\n\n")
 
-        if results["tls_version"]:
-            f.write(f"\nTLS Version check :\n")
+        tls_version = results.get("tls_version")
+        if tls_version:
+            f.write("TLS Version check :\n")
             f.write("-" * 60 + "\n")
-            for item in results["tls_version"]:
-                f.write(f"• Result : {item['status'].upper()}\n")
-                f.write(f"  → {item['message']}\n")
-                f.write(f"  → OWASP: A04:2025 - Cryptographic Failures\n\n")
-        
+            f.write(f"• Result : {tls_version.get('status', '').upper()}\n")
+            f.write(f" → {tls_version.get('message', '')}\n")
+            f.write(" → OWASP: A04:2025 - Cryptographic Failures\n\n")
+            
     return
