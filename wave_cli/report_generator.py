@@ -1,15 +1,13 @@
-# wave_cli/report_generator.py
-
+import datetime
 from pathlib import Path
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 from reportlab.lib.units import inch
+from reportlab.lib.pagesizes import letter
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle
 )
-from reportlab.lib import colors
-import datetime
 
 
 class WavePDFReport:
@@ -171,17 +169,7 @@ class WavePDFReport:
         story.append(Spacer(1, 0.3*inch))
     
     def generate_report(self, findings_dict):
-        """
-        Génère le rapport PDF complet.
-        
-        Args:
-            findings_dict: Dict[str, List[str]]
-                {
-                    'Directories': ['/admin', '/api', ...],
-                    'Subdomains': ['mail.example.com', ...],
-                    'Internal Links': ['https://example.com/page', ...]
-                }
-        """
+        """ Génère le rapport PDF complet """
         story = []
         
         # 1. Page de titre
@@ -196,7 +184,7 @@ class WavePDFReport:
             "Subdomains": "🔍",
             "Internal Links": "🔗",
             "Security Issues": "🛡️",
-            "Crypto Issues": "🔐",
+            "Crypto Issues": "🔐"
         }
         
         for section, findings in findings_dict.items():

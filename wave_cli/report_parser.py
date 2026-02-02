@@ -185,7 +185,7 @@ def collect_findings(run_dir: Path) -> Dict[str, List[str]]:
         "Subdomains": [],
         "Internal Links": [],
         "Security Issues": [],
-        "Crypto Issues": [],
+        "Crypto Issues": []
     }
     
     # Chercher les fichiers de résultats
@@ -201,7 +201,7 @@ def collect_findings(run_dir: Path) -> Dict[str, List[str]]:
 
         elif "A02_security-headers" in file_path.name:
             headers_findings = parse_security_headers_output(file_path)
-            # Formater pour le rapport
+   
             for header in headers_findings["missing_high"]:
                 findings["Security Issues"].append(f"[HIGH] Missing header: {header}")
             for header in headers_findings["missing_medium"]:
@@ -213,6 +213,7 @@ def collect_findings(run_dir: Path) -> Dict[str, List[str]]:
         
         elif "A04_crypto-failures" in file_path.name:
             crypto_findings = parse_crypto_failures_output(file_path)
+            
             for item in crypto_findings.get("https", []):
                 findings["Crypto Issues"].append(f"[HTTPS] {item}")
             for item in crypto_findings.get("ssl_cert", []):

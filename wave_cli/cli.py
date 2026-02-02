@@ -43,7 +43,7 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     run_dir = get_run_dir()
     cleaned_target = cleanse_url(target)
     click.echo(f"[*] Run directory : {run_dir}")
-    click.echo(click.style(f"[*] Starting scan on {target}...", bold=True))
+    click.echo(click.style(f"[*] Starting scan on {target}...\n", bold=True))
 
 
     """Step 1 : Running gobuster dir mode"""
@@ -51,9 +51,9 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     try:
         output_file_gobuster_dir = get_output_file("gobuster-dir", target, run_dir)
         run_gobuster_dir(target, output_file_gobuster_dir, wordlist=gobuster_wordlist)
-        click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dir scan completed, output saved to {output_file_gobuster_dir}")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dir scan completed, output saved to {output_file_gobuster_dir}\n")
     except Exception as e:
-        click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dir scan failed : {e}")
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dir scan failed : {e}\n")
     
 
     """Step 2 : Scraping internal links"""
@@ -61,9 +61,9 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     try:
         output_file_internal_links = get_output_file("internal-links", target, run_dir)
         scrape_internal_links(target, output_file_internal_links, scrap_limit=link_limit)
-        click.echo(click.style("[✓]", fg="green", bold=True) + f" Internal links scraped, output saved to {output_file_internal_links}")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Internal links scraped, output saved to {output_file_internal_links}\n")
     except Exception as e:
-        click.echo(click.style("[!]", fg="red", bold=True) + f" Failed to scrape internal links: {e}")
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Failed to scrape internal links : {e}\n")
 
 
     """Step 3 : Running gobuster dns mode"""
@@ -71,9 +71,9 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     try:
         output_file_gobuster_dns = get_output_file("gobuster-dns", cleaned_target, run_dir)
         run_subdomain_enum(cleaned_target, output_file_gobuster_dns, wordlist=subdomain_wordlist)
-        click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dns scan completed, output saved to {output_file_gobuster_dns}")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Gobuster dns scan completed, output saved to {output_file_gobuster_dns}\n")
     except Exception as e:
-        click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dns scan failed : {e}")
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Gobuster dns scan failed : {e}\n")
 
 
     """Step 4 : Checking security headers (OWASP A02)"""
@@ -81,9 +81,9 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     try:
         output_file_headers = get_output_file("A02_security-headers", target, run_dir)
         check_security_headers(target, output_file_headers)
-        click.echo(click.style("[✓]", fg="green", bold=True) + f" Security headers check completed, output saved to {output_file_headers}")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Security headers check completed, output saved to {output_file_headers}\n")
     except Exception as e:
-        click.echo(click.style("[!]", fg="red", bold=True) + f" Security headers check failed : {e}")
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Security headers check failed : {e}\n")
 
 
     """Step 5 : Checking cryptographic failures (OWASP A04)"""
@@ -91,9 +91,9 @@ def scan(target, output, gobuster_wordlist, subdomain_wordlist, link_limit):
     try:
         output_file_crypto = get_output_file("A04_crypto-failures", target, run_dir)
         run_crypto_scan(target, output_file_crypto)
-        click.echo(click.style("[✓]", fg="green", bold=True) + f" Cryptographic failures check completed, output saved to {output_file_crypto}")
+        click.echo(click.style("[✓]", fg="green", bold=True) + f" Cryptographic failures check completed, output saved to {output_file_crypto}\n")
     except Exception as e:
-        click.echo(click.style("[!]", fg="red", bold=True) + f" Cryptographic failures check failed : {e}")
+        click.echo(click.style("[!]", fg="red", bold=True) + f" Cryptographic failures check failed : {e}\n")
 
 
     """Step X : Generating PDF report"""
