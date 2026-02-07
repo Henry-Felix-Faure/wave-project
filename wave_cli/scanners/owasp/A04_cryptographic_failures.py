@@ -9,49 +9,61 @@ from urllib.parse import urlparse
 
 
 def check_https_redirect(target: str) -> Dict[str, Any]:
-    """ Vérifie si le site HTTP redirige vers HTTPS """
+    """ Teste HTTPS redirect pour apex ET www subdomain """
     result = {
-        "check": "HTTPS Redirect",
-        "has_https": False,
-        "redirects_to_https": False,
-        "final_url": "",
-        "status": "failed",
-        "message": ""
+        'check': 'HTTPS Redirect',
+        'apex_https': False,
+        'www_https': False,
+        'apex_redirects_https': False,
+        'www_redirects_https': False,
+        'apex_final_url': '',
+        'www_final_url': '',
+        'status': 'failed',
+        'message': ''
+    }
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
     }
     
     try:
         parsed = urlparse(target)
         domain = parsed.netloc or parsed.path
         
-        # Test HTTP → HTTPS redirect
-        http_url = f"http://{domain}"
-        https_url = f"https://{domain}"
+        apex_http = f'http://{domain}'
+        www_http = f'http://www.{domain}'
         
-        # Vérifie si HTTPS est disponible
-        try:
-            https_resp = requests.get(https_url, timeout=5, allow_redirects=True)
-            result["has_https"] = https_resp.status_code == 200
-        except requests.RequestException:
-            result["has_https"] = False
+        # Test apex
+        apex_resp = requests.get(apex_http, timeout=8, allow_redirects=True, 
+                               headers=headers, verify=False)
+        result['apex_final_url'] = apex_resp.url
+        result['apex_https'] = apex_resp.url.startswith('https://')
+        result['apex_redirects_https'] = result['apex_https']
         
-        # Vérifie la redirection HTTP → HTTPS
-        http_resp = requests.get(http_url, timeout=5, allow_redirects=True)
-        result["final_url"] = http_resp.url
+        # Test www
+        www_resp = requests.get(www_http, timeout=8, allow_redirects=True, 
+                              headers=headers, verify=False)
+        result['www_final_url'] = www_resp.url
+        result['www_https'] = www_resp.url.startswith('https://')
+        result['www_redirects_https'] = result['www_https']
         
-        if http_resp.url.startswith("https://"):
-            result["redirects_to_https"] = True
-            result["status"] = "passed"
-            result["message"] = "HTTP redirects to HTTPS"
-        elif result["has_https"]:
-            result["status"] = "warning"
-            result["message"] = "HTTPS available but no redirect from HTTP"
+        # Évaluation OWASP A04
+        if result['apex_redirects_https'] and result['www_redirects_https']:
+            result['status'] = 'passed'
+            result['message'] = f'Both apex & www redirect to HTTPS ✓'
+        elif result['apex_redirects_https']:
+            result['status'] = 'warning'
+            result['message'] = f'Apex → HTTPS OK, www → {result["www_final_url"]}'
+        elif result['www_redirects_https']:
+            result['status'] = 'warning'
+            result['message'] = f'www → HTTPS OK, apex → {result["apex_final_url"]}'
         else:
-            result["status"] = "failed"
-            result["message"] = "No HTTPS available"
+            result['status'] = 'failed'
+            result['message'] = f'Neither redirects to HTTPS (apex: {result["apex_final_url"]}, www: {result["www_final_url"]})'
     
     except requests.RequestException as e:
-        result["status"] = "error"
-        result["message"] = f"Connection error: {str(e)}"
+        result['status'] = 'error'
+        result['message'] = f'Network error: {str(e)}'
     
     return result
 
@@ -185,37 +197,46 @@ def run_crypto_scan(target: str, output_file: str) -> Dict[str, Any]:
 
 
 def save_results(output_file: Path, results: Dict[str, Any], target: str) -> None:
-    """ Sauvegarde les résultats dans l'output_file """
-    with output_file.open("w") as f:
-        f.write(f"Cryptographic failures basic analysis for {target}\n")
-        f.write("=" * 60 + "\n\n")
-
-        https = results.get("https")
+    """ Sauvegarde les résultats avec apex + www """
+    with output_file.open('w') as f:
+        f.write(f"Cryptographic failures analysis for {target}\n")
+        f.write("=" * 60 + "\n")
+        
+        https = results.get('https')
         if https:
-            f.write("HTTPS Redirect check :\n")
+            f.write("HTTPS Redirect check (Apex & www)\n")
             f.write("-" * 60 + "\n")
-            f.write(f"• Result : {https.get('status', '').upper()}\n")
-            f.write(f" → {https.get('message', '')}\n")
-            f.write(f" → Final URL : {https.get('final_url', '')}\n")
-            f.write(" → OWASP: A04:2025 - Cryptographic Failures\n\n")
-
-        ssl_cert = results.get("ssl_cert")
-        if ssl_cert:
-            f.write("SSL Certificate check :\n")
-            f.write("-" * 60 + "\n")
-            f.write(f"• Result : {ssl_cert.get('status', '').upper()}\n")
-            f.write(f" → {ssl_cert.get('message', '')}\n")
-            f.write(f" → Expiry Date : {ssl_cert.get('expiry_date', '')}\n")
-            f.write(f" → Issuer : {ssl_cert.get('issuer', '')}\n")
-            f.write(f" → Subject : {ssl_cert.get('subject', '')}\n")
-            f.write(" → OWASP: A04:2025 - Cryptographic Failures\n\n")
-
-        tls_version = results.get("tls_version")
-        if tls_version:
-            f.write("TLS Version check :\n")
-            f.write("-" * 60 + "\n")
-            f.write(f"• Result : {tls_version.get('status', '').upper()}\n")
-            f.write(f" → {tls_version.get('message', '')}\n")
-            f.write(" → OWASP: A04:2025 - Cryptographic Failures\n\n")
             
+            # Apex
+            f.write(f"Apex (http://{target.split('//')[1].split('/')[0]}): Result {https['apex_redirects_https'].upper()}\n")
+            f.write(f"  Final URL: {https['apex_final_url']}\n")
+            
+            # www
+            f.write(f"www (http://www.{target.split('//')[1].split('/')[0]}): Result {https['www_redirects_https'].upper()}\n")
+            f.write(f"  Final URL: {https['www_final_url']}\n")
+            
+            f.write(f"Overall: {https['status'].upper()}: {https['message']}\n")
+            f.write("OWASP A04:2025 - Cryptographic Failures\n")
+        
+
+        ssl_cert = results.get('ssl_cert')
+        if ssl_cert:
+            f.write("\nSSL Certificate check\n")
+            f.write("-" * 60 + "\n")
+            f.write(f"Result: {ssl_cert['status'].upper()}\n")
+            f.write(f"{ssl_cert['message']}\n")
+            f.write(f"Expiry Date: {ssl_cert.get('expiry_date', 'N/A')}\n")
+            f.write(f"Issuer: {ssl_cert.get('issuer', 'N/A')}\n")
+            f.write(f"Subject: {ssl_cert.get('subject', 'N/A')}\n")
+            f.write("OWASP A04:2025 - Cryptographic Failures\n")
+
+
+        tls_version = results.get('tls_version')
+        if tls_version:
+            f.write("\nTLS Version check\n")
+            f.write("-" * 60 + "\n")
+            f.write(f"Result: {tls_version['status'].upper()}\n")
+            f.write(f"{tls_version['message']}\n")
+            f.write("OWASP A04:2025 - Cryptographic Failures\n")
+
     return

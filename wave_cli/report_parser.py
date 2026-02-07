@@ -117,24 +117,26 @@ def parse_crypto_failures_output(file_path: Path) -> Dict[str, List[str]]:
     
     try:
         with open(file_path, 'r') as f:
-            lines = f.readlines()
+            lines = [line.strip() for line in f.readlines()]
+        section_map = {
+            "HTTPS Redirect check": "https",
+            "SSL Certificate check": "ssl_cert", 
+            "TLS Version check": "tls_version"
+        }
         current_section = None
-
+        
         for line in lines:
-            line = line.strip()
-            # Détection des sections
-            if "HTTPS Redirect check" in line:
-                current_section = "https"
-            elif "SSL Certificate check" in line:
-                current_section = "ssl_cert"
-            elif "TLS Version check" in line:
-                current_section = "tls_version"
-            # Ignorer séparateurs et headers
-            elif line.startswith("-") or "OWASP" in line or "Cryptographic failures" in line:
+            if not line or line.startswith("=") or line.startswith("OWASP"):
                 continue
-            # Capturer les résultats
-            elif current_section and line:
-                findings[current_section].append(line)
+        
+            for section_name, section_key in section_map.items():
+                if section_name in line:
+                    current_section = section_key
+                    break
+            
+            if current_section and line:
+                if any(kw in line.lower() for kw in ["apex", "www", "final url", "overall", "result"]):
+                    findings[current_section].append(line)
     
     except Exception as e:
         click.echo(click.style(f"[!]", fg='red', bold=True) + f" Error parsing cryptographic failures : {e}")
