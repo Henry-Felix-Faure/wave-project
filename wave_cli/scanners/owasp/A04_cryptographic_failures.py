@@ -21,50 +21,76 @@ def check_https_redirect(target: str) -> Dict[str, Any]:
         'status': 'failed',
         'message': ''
     }
-    
+
     headers = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
+        'User-Agent': (
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
+            '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        )
     }
-    
+
     try:
         parsed = urlparse(target)
-        domain = parsed.netloc or parsed.path
-        
-        apex_http = f'http://{domain}'
-        www_http = f'http://www.{domain}'
-        
-        # Test apex
-        apex_resp = requests.get(apex_http, timeout=8, allow_redirects=True, 
-                               headers=headers, verify=False)
+        domain = parsed.netloc or parsed.path  # ex: google.com
+
+        apex_host = domain
+        www_host = f"www.{domain}" if not domain.startswith("www.") else domain
+
+        apex_http = f'http://{apex_host}'
+        www_http = f'http://{www_host}'
+
+        # 1) HTTP → ?
+        apex_resp = requests.get(apex_http, timeout=8, allow_redirects=True,
+                                 headers=headers, verify=False)
         result['apex_final_url'] = apex_resp.url
-        result['apex_https'] = apex_resp.url.startswith('https://')
-        result['apex_redirects_https'] = result['apex_https']
-        
-        # Test www
-        www_resp = requests.get(www_http, timeout=8, allow_redirects=True, 
-                              headers=headers, verify=False)
+        result['apex_redirects_https'] = apex_resp.url.startswith('https://')
+
+        www_resp = requests.get(www_http, timeout=8, allow_redirects=True,
+                                headers=headers, verify=False)
         result['www_final_url'] = www_resp.url
-        result['www_https'] = www_resp.url.startswith('https://')
-        result['www_redirects_https'] = result['www_https']
-        
-        # Évaluation OWASP A04
-        if result['apex_redirects_https'] and result['www_redirects_https']:
+        result['www_redirects_https'] = www_resp.url.startswith('https://')
+
+        # 2) HTTPS direct (apex)
+        try:
+            r_apex_https = requests.get(f'https://{apex_host}', timeout=8, headers=headers)
+            result['apex_https'] = r_apex_https.ok
+        except requests.RequestException:
+            result['apex_https'] = False
+
+        # 3) HTTPS direct (www)
+        try:
+            r_www_https = requests.get(f'https://{www_host}', timeout=8, headers=headers)
+            result['www_https'] = r_www_https.ok
+        except requests.RequestException:
+            result['www_https'] = False
+
+        # 4) Évaluation
+        if result['apex_redirects_https'] or result['www_redirects_https']:
             result['status'] = 'passed'
-            result['message'] = f'Both apex & www redirect to HTTPS ✓'
-        elif result['apex_redirects_https']:
+            result['message'] = (
+                f'HTTPS redirect detected '
+                f'(apex_final={result["apex_final_url"]}, '
+                f'www_final={result["www_final_url"]})'
+            )
+        elif result['apex_https'] or result['www_https']:
             result['status'] = 'warning'
-            result['message'] = f'Apex → HTTPS OK, www → {result["www_final_url"]}'
-        elif result['www_redirects_https']:
-            result['status'] = 'warning'
-            result['message'] = f'www → HTTPS OK, apex → {result["apex_final_url"]}'
+            result['message'] = (
+                'HTTPS available but HTTP does not clearly redirect '
+                f'(apex_final={result["apex_final_url"]}, '
+                f'www_final={result["www_final_url"]})'
+            )
         else:
             result['status'] = 'failed'
-            result['message'] = f'Neither redirects to HTTPS (apex: {result["apex_final_url"]}, www: {result["www_final_url"]})'
-    
+            result['message'] = (
+                'Neither HTTPS redirect nor HTTPS endpoint detected '
+                f'(apex_final={result["apex_final_url"]}, '
+                f'www_final={result["www_final_url"]})'
+            )
+
     except requests.RequestException as e:
         result['status'] = 'error'
         result['message'] = f'Network error: {str(e)}'
-    
+
     return result
 
 
@@ -238,5 +264,3 @@ def save_results(output_file: Path, results: Dict[str, Any], target: str) -> Non
             f.write(f"Result: {tls_version['status'].upper()}\n")
             f.write(f"{tls_version['message']}\n")
             f.write("OWASP A04:2025 - Cryptographic Failures\n")
-
-    return
