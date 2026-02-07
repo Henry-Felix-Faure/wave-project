@@ -208,11 +208,11 @@ def save_results(output_file: Path, results: Dict[str, Any], target: str) -> Non
             f.write("-" * 60 + "\n")
             
             # Apex
-            f.write(f"Apex (http://{target.split('//')[1].split('/')[0]}): Result {https['apex_redirects_https'].upper()}\n")
+            f.write(f"Apex (http://{target.split('//')[1].split('/')[0]}): Result {str(https['apex_redirects_https']).upper()}\n")
             f.write(f"  Final URL: {https['apex_final_url']}\n")
             
             # www
-            f.write(f"www (http://www.{target.split('//')[1].split('/')[0]}): Result {https['www_redirects_https'].upper()}\n")
+            f.write(f"www (http://www.{target.split('//')[1].split('/')[0]}): Result {str(https['www_redirects_https']).upper()}\n")
             f.write(f"  Final URL: {https['www_final_url']}\n")
             
             f.write(f"Overall: {https['status'].upper()}: {https['message']}\n")
